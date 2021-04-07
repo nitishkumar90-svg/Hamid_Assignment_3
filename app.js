@@ -2,7 +2,7 @@ const express = require("express")
 const app = express()
 const myAxios = require("axios")
 const fileStream = require('fs')
-const port = 4444
+const port = 3232
 const fetchContent = true
 const currentDate = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
 
@@ -17,10 +17,8 @@ app.listen(port, function () {
 
 //#endregion
 
-const newFileWithContent = (records, fileName) => {
-    if (fileName === undefined)
-        fileName = 'dummy.txt'
-    if (records === undefined) {
+const newFileWithContent = (record, fileName) => {
+    if (record === undefined || record === null) {
         console.log('No record found')
         return
     }
@@ -29,11 +27,9 @@ const newFileWithContent = (records, fileName) => {
         console.log(`Error: ${error}`)
     })
     logMessageToFile(`----------> ${currentDate} <----------\n\n`, fileWS)
-    records.map((record) => {
-        logMessageToFile(`Id: ${record.id}, Name:${record.name}, Email Address: ${record.email} \n\n`, fileWS)
-    })
+    logMessageToFile(`Id: ${record.id}\nTitle:${record.title}\nBody: ${record.body}\n`, fileWS)
+    logMessageToFile(`----------------------------------------------------------------\n\n\n`, fileWS)
     fileWS.end();
-    return 'Copied!!'
 }
 
 const logMessageToFile = (message, fileWS) => {
@@ -42,20 +38,19 @@ const logMessageToFile = (message, fileWS) => {
 
 const fetchRecords = () => {
     const fileName = process.argv[2]
+    if (fileName === undefined)
+        fileName = 'dummy.txt'
     const querySelectors = process.argv[3]
     if (fetchContent) {
-        myAxios.get('https://jsonplaceholder.typicode.com/users')
-            .then(response => response.data).then(response => {
-                newFileWithContent(response, fileName)
-                return 'Copied!!'
+        myAxios.get(`https://jsonplaceholder.typicode.com/posts/${querySelectors}`)
+            .then(response => {
+                newFileWithContent(response.data, fileName)
+                console.log(`Data copied to ${fileName}`)
             })
             .catch(function (error) {
-                // handle error
-                console.log(error)
-                return error
+                console.log(`Error:`, error.message)
             })
             .then(function () {
-                return 'Hiiiii'
             })
     }
 }
